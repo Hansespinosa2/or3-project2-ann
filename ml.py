@@ -4,30 +4,39 @@ class ActivationFunctions():
     def __init__(self):
         pass
 
-    def relu(self, x):
+    @staticmethod    
+    def relu(x):
         return np.maximum(x, 0)
     
-    def relu_cubed(self, x):
+    @staticmethod
+    def relu_cubed(x):
         return np.power(np.maximum(x,0),3)
     
-    def linear(self, x):
+    @staticmethod
+    def linear(x):
         return x
+    
+    @staticmethod
+    def softmax(x):
+        return np.exp(x) / np.sum(np.exp(x),0)
     
 
 class InputLayer():
-    def __init__(self,input_size, output_size):
-        self.output_size = output_size
-        self.W = np.random.rand(self.output_size, input_size)
+    def __init__(self,input_size):
+        self.input_size = input_size
 
     def forward(self, X):
-        return self.W.T @ X
+        if X.ndim == 1:
+            return X.reshape(-1,1)
+        else:
+            return X.T
 
 class HiddenLayer():
     def __init__(self, input_size, output_size):
         self.input_size = input_size
         self.output_size = output_size
-        self.W = np.random.rand(self.output_size, self.input_size)
-        self.b = np.random.rand(self.output_size, 1)
+        self.W = np.random.randn(self.output_size, self.input_size)
+        self.b = np.random.randn(self.output_size, 1)
 
     def forward(self, X):
-        return self.W.T @ X + self.b
+        return self.W @ X + self.b
