@@ -10,4 +10,6 @@ class ActivationFunctions():
     def relu_cubed(x):
         return np.power(np.maximum(x,0),3)
     
+    def linear(x):
+        return x
     
