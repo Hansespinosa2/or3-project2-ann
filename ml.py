@@ -98,8 +98,8 @@ class NeuralNetwork():
 
         self.layers = []
 
-        for i, layer_size in enumerate(layer_list):
-            a_layer = Layer(layer_size[i],layer_size[i+1],self.activations[i])
+        for i in range(len(layer_list)- 1):
+            a_layer = Layer(layer_list[i],layer_list[i+1],self.activations[i])
             self.layers.append(a_layer)
 
     def forward(self, X):
