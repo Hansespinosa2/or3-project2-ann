@@ -37,6 +37,19 @@ class ActivationFunctions():
         s = ActivationFunctions.sigmoid(x)
         return s (1 - s)
     
+class CostFunctions():
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def mse_cost(y_hat,y_true):
+        return np.mean(np.square(y_hat-y_true),axis=1) / 2
+    
+    @staticmethod
+    def mse_derivative(y_hat, y_true):
+        return (y_hat-y_true) / y_hat.shape[1]
+        
+    
 
 class Layer():
     def __init__(self, input_size, output_size, activation = 'relu'):
@@ -76,4 +89,39 @@ class Layer():
 
         return dX
 
+
+
+class NeuralNetwork():
+    def __init__(self, layer_list, activations):
+        self.layer_list = layer_list
+        self.activations = activations
+
+        self.layers = []
+
+        for i, layer_size in enumerate(layer_list):
+            a_layer = Layer(layer_size[i],layer_size[i+1],self.activations[i])
+            self.layers.append(a_layer)
+
+    def forward(self, X):
+        A = X
+        for layer in self.layers:
+            A = layer.forward(A)
+        return A
+    
+    def train(self, X, y, gamma=0.01, epochs=1000, cost_fn = 'mse'):
+        if cost_fn == 'mse':
+            self.loss_fn = CostFunctions.mse_cost
+            self.loss_fn_derivative = CostFunctions.mse_derivative
+
+        for epoch in range(epochs):
+            y_hat = self.forward(X)
+
+            loss = self.loss_fn(y_hat, y)
+
+            if epoch % 100 == 0:
+                print(f"Epoch {epoch}; Loss {loss}")
+            
+            dA = self.loss_fn_derivative(y_hat, y)
+            for layer in reversed(self.layers):
+                dA = layer.backward(dA, gamma)
 
