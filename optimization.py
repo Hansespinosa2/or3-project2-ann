@@ -6,5 +6,9 @@ class CostFunctions():
 
     @staticmethod
     def mse_cost(y_hat,y_true):
-        y_true = y_true.reshape(1,-1)
-        return np.sum(np.square(y_hat-y_true),axis=1) / (2*y_hat.shape[1])
+        return np.mean(np.square(y_hat-y_true),axis=1) / 2
+    
+    @staticmethod
+    def mse_derivative(y_hat, y_true):
+        return (y_hat-y_true) / y_hat.shape[1]
+        
