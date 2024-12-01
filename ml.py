@@ -29,10 +29,6 @@ class ActivationFunctions():
         return np.ones_like(x)
     
     @staticmethod
-    def softmax(x):
-        return np.exp(x) / np.sum(np.exp(x),0)
-    
-    @staticmethod
     def sigmoid(x):
         return 1 / (1 + np.exp(-1 * x))
     
@@ -42,22 +38,42 @@ class ActivationFunctions():
         return s (1 - s)
     
 
-class InputLayer():
-    def __init__(self,input_size):
-        self.input_size = input_size
-
-    def forward(self, X):
-        if X.ndim == 1:
-            return X.reshape(-1,1)
-        else:
-            return X.T
-
-class HiddenLayer():
-    def __init__(self, input_size, output_size):
+class Layer():
+    def __init__(self, input_size, output_size, activation = 'relu'):
         self.input_size = input_size
         self.output_size = output_size
         self.W = np.random.randn(self.output_size, self.input_size)
         self.b = np.random.randn(self.output_size, 1)
 
+        if activation == 'relu':
+            self.activation = ActivationFunctions.relu
+            self.activation_derivative = ActivationFunctions.relu_derivative
+        elif activation == 'relu_cubed':
+            self.activation = ActivationFunctions.relu_cubed
+            self.activation_derivative = ActivationFunctions.relu_cubed_derivative
+        elif activation == 'linear':
+            self.activation = ActivationFunctions.linear
+            self.activation_derivative = ActivationFunctions.linear_derivative
+        elif activation == 'sigmoid':
+            self.activation = ActivationFunctions.sigmoid
+            self.activation_derivative = ActivationFunctions.sigmoid_derivative
+
     def forward(self, X):
-        return self.W @ X + self.b
+        self.Z = self.W @ X + self.b
+        self.A = self.activation(self.Z)
+        self.X = X
+        return self.A
+    
+    def backward(self, dA, gamma):
+        dZ = dA * self.activation_derivative(self.Z)
+
+        dW = dZ @ self.X.T / self.X.shape[1]
+        db = np.sum(dZ, axis=1, keepdims=True) / self.X.shape[1]
+        dX = self.W.T @ dZ
+
+        self.W -= gamma * dW
+        self.b -= gamma * db
+
+        return dX
+
+
