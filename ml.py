@@ -42,14 +42,22 @@ class CostFunctions():
         pass
 
     @staticmethod
-    def mse_cost(y_hat,y_true):
-        return np.mean(np.square(y_hat-y_true)) / 2
+    def mse_cost(y_hat, y_true):
+        return np.mean(np.square(y_hat - y_true)) / 2
     
     @staticmethod
     def mse_derivative(y_hat, y_true):
-        return (y_hat-y_true) / y_hat.shape[1]
-        
+        return (y_hat - y_true) / y_hat.shape[1]
     
+    @staticmethod
+    def l1_reg_mse(y_hat, y_true, reg_lambda, layers):
+        mse = np.mean(np.square(y_hat - y_true)) / 2
+        l1_reg = reg_lambda * np.sum([np.sum(np.abs(layer.W)) for layer in layers])
+        return mse + l1_reg
+    
+    @staticmethod
+    def l1_reg_mse_derivative(y_hat, y_true):
+        return (y_hat - y_true) / y_hat.shape[1]
 
 class Layer():
     def __init__(self, input_size, output_size, activation = 'relu'):
@@ -77,7 +85,7 @@ class Layer():
         self.X = X
         return self.A
     
-    def backward(self, dA, gamma):
+    def backward(self, dA, gamma, reg_lambda=0.0):
         dZ = dA * self.activation_derivative(self.Z)
 
         dW = dZ @ self.X.T / self.X.shape[1]
@@ -87,12 +95,11 @@ class Layer():
         dW = np.clip(dW, -1e3, 1e3)
         db = np.clip(db, -1e3, 1e3)
 
-        self.W -= gamma * dW
+        # Include L1 regularization in weight updates
+        self.W -= gamma * (dW + reg_lambda * np.sign(self.W))
         self.b -= gamma * db
 
         return dX
-
-
 
 class NeuralNetwork():
     def __init__(self, layer_list, activations):
@@ -101,8 +108,8 @@ class NeuralNetwork():
 
         self.layers = []
 
-        for i in range(len(layer_list)- 1):
-            a_layer = Layer(layer_list[i],layer_list[i+1],self.activations[i])
+        for i in range(len(layer_list) - 1):
+            a_layer = Layer(layer_list[i], layer_list[i+1], self.activations[i])
             self.layers.append(a_layer)
 
     def forward(self, X):
@@ -111,10 +118,13 @@ class NeuralNetwork():
             A = layer.forward(A)
         return A
     
-    def train(self, X, y, gamma=0.01, epochs=1000, cost_fn = 'mse'):
+    def train(self, X, y, gamma=0.01, epochs=1000, cost_fn='mse', reg_lambda=0.0):
         if cost_fn == 'mse':
             self.loss_fn = CostFunctions.mse_cost
             self.loss_fn_derivative = CostFunctions.mse_derivative
+        elif cost_fn == 'l1_reg_mse':
+            self.loss_fn = lambda y_hat, y: CostFunctions.l1_reg_mse(y_hat, y, reg_lambda, self.layers)
+            self.loss_fn_derivative = CostFunctions.l1_reg_mse_derivative
 
         for epoch in range(epochs):
             y_hat = self.forward(X)
@@ -126,5 +136,4 @@ class NeuralNetwork():
             
             dA = self.loss_fn_derivative(y_hat, y)
             for layer in reversed(self.layers):
-                dA = layer.backward(dA, gamma)
-
+                dA = layer.backward(dA, gamma, reg_lambda)
