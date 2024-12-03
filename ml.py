@@ -108,6 +108,8 @@ class NeuralNetwork():
 
         self.layers = []
 
+        self.training_cache = {}
+
         for i in range(len(layer_list) - 1):
             a_layer = Layer(layer_list[i], layer_list[i+1], self.activations[i])
             self.layers.append(a_layer)
@@ -130,6 +132,8 @@ class NeuralNetwork():
             y_hat = self.forward(X)
 
             loss = self.loss_fn(y_hat, y)
+            
+            self.training_cache[epoch] = loss
 
             if epoch % 100 == 0:
                 print(f"Epoch {epoch}; Loss {loss}")
@@ -137,3 +141,4 @@ class NeuralNetwork():
             dA = self.loss_fn_derivative(y_hat, y)
             for layer in reversed(self.layers):
                 dA = layer.backward(dA, gamma, reg_lambda)
+                
