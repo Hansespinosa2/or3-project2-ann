@@ -35,7 +35,7 @@ class ActivationFunctions():
     @staticmethod
     def sigmoid_derivative(x):
         s = ActivationFunctions.sigmoid(x)
-        return s (1 - s)
+        return s * (1 - s)
     
 class CostFunctions():
     def __init__(self):
@@ -43,7 +43,7 @@ class CostFunctions():
 
     @staticmethod
     def mse_cost(y_hat,y_true):
-        return np.mean(np.square(y_hat-y_true),axis=1) / 2
+        return np.mean(np.square(y_hat-y_true)) / 2
     
     @staticmethod
     def mse_derivative(y_hat, y_true):
@@ -83,6 +83,9 @@ class Layer():
         dW = dZ @ self.X.T / self.X.shape[1]
         db = np.sum(dZ, axis=1, keepdims=True) / self.X.shape[1]
         dX = self.W.T @ dZ
+        
+        dW = np.clip(dW, -1e3, 1e3)
+        db = np.clip(db, -1e3, 1e3)
 
         self.W -= gamma * dW
         self.b -= gamma * db
