@@ -135,7 +135,7 @@ class NeuralNetwork():
             
             self.training_cache[epoch] = loss
 
-            if epoch % 100 == 0:
+            if epoch % 10 == 0:
                 print(f"Epoch {epoch}; Loss {loss}")
             
             dA = self.loss_fn_derivative(y_hat, y)
